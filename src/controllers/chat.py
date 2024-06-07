@@ -1,8 +1,12 @@
 import os
 import uuid
-from flask import Blueprint, Response, json, request, session
+from flask import Blueprint, Flask, Response, json, request, session
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from src.services.query_engine import QueryEngine
+
+app = Flask(__name__)
+CORS(app)
 
 chats = Blueprint("chats", __name__)
 
@@ -40,10 +44,26 @@ def upload_file():
             user_id = str(uuid.uuid4())
             session['user_id'] = user_id
 
-        filepath = os.path.join("uploaded_files", user_id, filename)
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        file.save(filepath)
-        query_engine.load_documents(user_id, os.path.dirname(filepath))
+        user_directory = os.path.join("uploaded_files", user_id)
+        filepath = os.path.join(user_directory, filename)
+        
+        try:
+            os.makedirs(user_directory, exist_ok=True)  # Ensure the user's directory exists
+            file.save(filepath)
+        except PermissionError:
+            return Response(
+                response=json.dumps({'status': "failed", "message": "Permission denied while saving the file"}),
+                status=500,
+                mimetype='application/json'
+            )
+        except Exception as e:
+            return Response(
+                response=json.dumps({'status': "failed", "message": str(e)}),
+                status=500,
+                mimetype='application/json'
+            )
+
+        query_engine.load_documents(user_id, user_directory)
         return Response(
             response=json.dumps({'status': "success", "message": f"File {filename} uploaded and documents loaded for user {user_id}"}),
             status=200,

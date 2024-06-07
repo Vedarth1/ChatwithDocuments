@@ -25,7 +25,7 @@ class QueryEngine:
             shutil.copy(secure_connect_path, tmp_secure_connect_path)
 
             auth_provider = PlainTextAuthProvider(CLIENT_ID, CLIENT_SECRET)
-            cluster = Cluster(cloud={'secure_connect_bundle': tmp_secure_connect_path}, auth_provider=auth_provider)
+            cluster = Cluster(cloud={'secure_connect_bundle': tmp_secure_connect_path}, auth_provider=auth_provider,connect_timeout=60.0)
 
             try:
                 self.session = cluster.connect()
