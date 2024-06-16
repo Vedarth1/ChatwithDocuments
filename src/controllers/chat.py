@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from src.services.query_engine import QueryEngine
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,supports_credentials=True)
 
 chats = Blueprint("chats", __name__)
 
